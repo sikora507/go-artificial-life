@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/rand"
 	"path"
+	"sync"
 	"time"
 
 	"github.com/tfriedel6/canvas"
@@ -17,6 +18,7 @@ const padding = 50
 
 var particles []*particle = make([]*particle, 0)
 var cv *canvas.Canvas
+var wg sync.WaitGroup
 
 func randomX() float64 {
 	return (rand.Float64() * (float64(cv.Width()) - padding*2)) + padding
@@ -68,6 +70,7 @@ func rule(particles1 []particle, particles2 []particle, g float64) {
 			a.vy *= -1
 		}
 	}
+	defer wg.Done()
 }
 
 func printFps(elapsedTime time.Duration) {
@@ -100,13 +103,15 @@ func main() {
 		w, h := float64(cv.Width()), float64(cv.Height())
 		cv.SetFillStyle("#000")
 		cv.FillRect(0, 0, w, h)
-		rule(green, green, -0.32)
-		rule(green, red, -0.17)
-		rule(green, yellow, 0.34)
-		rule(red, red, -0.1)
-		rule(red, green, -0.34)
-		rule(yellow, yellow, 0.15)
-		rule(yellow, green, -0.20)
+		wg.Add(7)
+		go rule(green, green, -0.32)
+		go rule(green, red, -0.17)
+		go rule(green, yellow, 0.34)
+		go rule(red, red, -0.1)
+		go rule(red, green, -0.34)
+		go rule(yellow, yellow, 0.15)
+		go rule(yellow, green, -0.20)
+		wg.Wait()
 		for _, p := range particles {
 			draw(p.x, p.y, p.color, 3)
 		}
