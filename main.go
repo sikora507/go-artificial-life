@@ -45,20 +45,25 @@ func rule(particles1 []particle, particles2 []particle, g float64) {
 	for i := 0; i < len(particles1); i++ {
 		a := &particles1[i]
 		fx, fy := 0.0, 0.0
-		for j := 0; j < len(particles2); j++ {
-			b := &particles2[j]
-			dx, dy := a.x-b.x, a.y-b.y
-			if dx == 0 && dy == 0 {
-				continue
+		ch := make(chan bool, len(particles2))
+		go func(c chan bool) {
+			for j := 0; j < len(particles2); j++ {
+				b := &particles2[j]
+				dx, dy := a.x-b.x, a.y-b.y
+				if dx == 0 && dy == 0 {
+					continue
+				}
+				d := math.Sqrt(dx*dx + dy*dy)
+				if d > 80 { // only points nearby affect each other
+					continue
+				}
+				F := g / (d)
+				fx += (F * dx)
+				fy += (F * dy)
 			}
-			d := math.Sqrt(dx*dx + dy*dy)
-			if d > 80 { // only points nearby affect each other
-				continue
-			}
-			F := g / (d)
-			fx += (F * dx)
-			fy += (F * dy)
-		}
+			c <- true
+		}(ch)
+		<-ch
 		a.vx = (a.vx + fx) * 0.5
 		a.vy = (a.vy + fy) * 0.5
 		a.x += a.vx
