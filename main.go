@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
+	"path"
+	"time"
 
 	"github.com/tfriedel6/canvas"
 	"github.com/tfriedel6/canvas/sdlcanvas"
@@ -67,6 +70,16 @@ func rule(particles1 []particle, particles2 []particle, g float64) {
 	}
 }
 
+func printFps(elapsedTime time.Duration) {
+	cv.SetFillStyle("#FFFFFF")
+	cv.SetStrokeStyle("#000000")
+	cv.SetLineWidth(2)
+	fpsValue := int(1 / elapsedTime.Seconds())
+	fpsText := fmt.Sprintf("FPS: %d", fpsValue)
+	cv.FillText(fpsText, 5, 35)
+	cv.StrokeText(fpsText, 5, 35)
+}
+
 func main() {
 	var wnd *sdlcanvas.Window
 	var err error
@@ -75,12 +88,15 @@ func main() {
 		panic(err)
 	}
 
+	font := path.Join("assets", "fonts", "montserrat.ttf")
+	cv.SetFont(font, 32)
+
 	yellow := create(1500, "#FFFF00")
 	red := create(1500, "#FF0000")
 	green := create(1500, "#00FF00")
 
 	wnd.MainLoop(func() {
-		//startTime := time.Now()
+		startTime := time.Now()
 		w, h := float64(cv.Width()), float64(cv.Height())
 		cv.SetFillStyle("#000")
 		cv.FillRect(0, 0, w, h)
@@ -94,8 +110,7 @@ func main() {
 		for _, p := range particles {
 			draw(p.x, p.y, p.color, 3)
 		}
-		//time.Sleep(18 * time.Millisecond)
-		//elapsedTime := time.Since(startTime)
-		//fmt.Println(1/elapsedTime.Seconds(), "fps")
+		elapsedTime := time.Since(startTime)
+		printFps(elapsedTime)
 	})
 }
